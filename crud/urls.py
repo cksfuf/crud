@@ -32,4 +32,8 @@ urlpatterns = [
 
     # Delete
     path('posts/<int:id>/delete/', views.delete),
+
+    # update
+    path('posts/<int:id>/edit/', views.edit),
+    path('posts/<int:id>/update/', views.update),
 ]
