@@ -119,9 +119,7 @@ admin.site.register(Post)
 - `index.html` 파일에 반복문 설정
 - `posts` > `views.py`에 import 와 함수 추가
 ```html
- <!--
- posts > templates > index.html
- -->
+ <!-- posts > templates > index.html -->
 <body>
     <h1>여기는 index 입니다.</h1>
     
@@ -156,14 +154,13 @@ def index(request):
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.index),
-    # 추가
+
+    # Read(1)
     path('posts/<int:id>/', views.detail),
 ]
 ```
 ```html
-<!--
- posts > templates > detail.html
- -->
+<!-- posts > templates > detail.html -->
 <body>
     <h1>detail</h1>
     <h2>{{post.title}}</h2>
@@ -171,9 +168,7 @@ urlpatterns = [
 </body>
 ```
 ```html
-<!--
- posts > templates > index.html
- -->
+<!-- posts > templates > index.html -->
 <body>
     <h1>여기는 index 입니다.</h1>
     
@@ -185,6 +180,7 @@ urlpatterns = [
 </body>
 ```
 ```python
+# 함수 추가
 def detail(request, id):
     post = Post.objects.get(id=id)
 
@@ -214,9 +210,7 @@ urlpatterns = [
 ]
 ```
 ```html
-<!--
- posts > templates > detail.html
- -->
+<!-- posts > templates > detail.html -->
 <body>
     <h1>detail</h1>
     <h2>{{post.title}}</h2>
@@ -226,24 +220,19 @@ urlpatterns = [
 </body>
 ```
 ```html
-<!--
- posts > templates > index.html
- -->
+<!-- posts > templates > index.html -->
 <body>
     <h1>여기는 index 입니다.</h1>
     
     {% for post in posts %}
         <p>{{post.title}}</p>
-        <!--추가-->
-        <a href="/posts/{{post.id}}/">detail</a>
+        <a href="/posts/{{post.id}}/">detail</a> <!--추가-->
         <hr>
     {% endfor %}
 </body>
 ```
 ```html
-<!--
- posts > templates > new.html
- -->
+<!-- posts > templates > new.html -->
 <body>
     <form action="/posts/create/">
         <label for="title">Title: </label>
@@ -278,4 +267,97 @@ def create(request):
     return redirect(f'/posts/{post.id}/')
 ```
 
-4. Delet 기능 구현
+## 4. Delet 기능 구현
+- `crud` > `urls.py`에 `path` 추가
+- `detail.html` 파일 수정
+- `view.py` 함수 추가
+```python
+# Delete
+path('posts/int:id/delete/', views.delete),
+```
+```html
+<!--detail.html 코드 추가-->
+<body>
+    <h1>detail</h1>
+    <h2>{{post.title}}</h2>
+    <p>{{post.content}}</p>
+    <a href="/posts/{{post.id}}/delete/">delete</a> <!--추가-->
+    <hr>
+    <a href="/">home</a>
+</body>
+```
+```python
+# views.py 함수 추가
+def delete(request, id):
+    post = Post.objects.get(id=id)
+    post.delete()
+
+    return redirect('/')
+```
+
+
+## 5. Update 기능 구현
+- `urls.py`의 `path` 추가
+- `detail.html` 코드 수정
+- `templates` > `edit.html` 파일 생성
+- `views.py` 함수 추가
+```python
+# Update
+    path('posts/<int:id>/edit/', views.edit),
+    path('posts/<int:id>/update/', views.update),
+```
+```html
+<!-- detail.html -->
+<body>
+    <h1>detail</h1>
+    <h2>{{post.title}}</h2>
+    <p>{{post.content}}</p>
+    <a href="/posts/{{post.id}}/edit/">update</a> <!--추가-->
+    <a href="/posts/{{post.id}}/delete/">delete</a>
+    <hr>
+    <a href="/">home</a>
+</body>
+```
+```html
+<!-- edit.html -->
+<body>
+    <h1>update</h1>
+
+    <form action="/posts/{{post.id}}/update/">
+        <label for="title">Title: </label>
+        <input type="text" id="title" value="{{post.title}}" name="title">
+
+        <label for="content">Content: </label>
+        <input type="text" id="content" value="{{post.content}}" name="content">
+
+        <input type="submit">
+    </form>
+</body>
+```
+```python
+# views.py
+def edit(request, id):
+    post = Post.objects.get(id=id)
+
+    context = {
+        'post': post,
+    }
+
+    return render(request, 'edit.html', context)
+
+
+def update(request, id):
+    # 기존정보 가지고 오기
+    post = Post.objects.get(id=id)
+
+    # 새로운 정보 가지고오기
+    title = request.GET.get('title')
+    content = request.GET.get('content')
+
+    # 기존정보를 새로운 정보로 바꾸기
+    post.title = title
+    post.content = content
+    post.save()
+
+    return redirect(f'/posts/{post.id}/')
+```
